@@ -54,7 +54,7 @@
 <h1>Simulação de Processamento de Salário</h1>
 
 <form method="post">
-    <label>Nome do Funcionário:</label>
+    <label>MIGAY</label>
     <input type="text" name="nome" required>
 
     <label>Salário Bruto (R$):</label>

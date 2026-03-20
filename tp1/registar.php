@@ -2,23 +2,34 @@
 require_once 'config.php';
 session_start();
 
+// Se o utilizador já tiver sessão iniciada, deve ir para a página de trabalho porque o login já passou
 if (isset($_SESSION['perfil'])) { header("Location: dashboard.php"); exit; }
 
 $erro = "";
 $sucesso = "";
 
+// LÓGICA DE REGISTO NA PLATAFORMA QUANDO O BOTÃO É CLICADO (FORMULÁRIO POST)
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // FUNÇÃO "TRIM": Remove os espaços acidentais deixados pela pessoa (ex:"  maria  " -> "maria")
     $nome = trim($_POST['nome']);
     $email = trim($_POST['email']);
     $senha = $_POST['senha'];
+    
+    // SISTEMA DE SEGURANÇA 1: Criptografia da Password
+    // O Hash transforma a "senha" visível numa série de caracteres como "$2y$10$t3r..." 
+    // Nunca guardamos palavras-passe em estado visível/texto aberto!
     $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
     
-    // Verifica se email ja existe
+    // SISTEMA DE SEGURANÇA 2: Regra de E-mail Único
+    // Prepara a verificação pedindo à BD para procurar contas já submetidas com esse email
     $stmt = $pdo->prepare("SELECT id FROM utilizadores WHERE email = ?");
     $stmt->execute([$email]);
+    
     if ($stmt->fetch()) {
+        // Se encontrei alguém (fetch = true), dá erro e recusa.
         $erro = "Já existe uma conta com este e-mail!";
     } else {
+        // O Aluno é "limpo" (não existe). Processo de Injeção dos 3 dados na Base + Cargo ("aluno" por default)
         $stmt = $pdo->prepare("INSERT INTO utilizadores (nome, email, senha, perfil) VALUES (?, ?, ?, 'aluno')");
         if ($stmt->execute([$nome, $email, $senha_hash])) {
             $sucesso = "Conta criada com sucesso! Já pode fazer login.";
@@ -33,8 +44,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Criar Conta | IPCA Portal</title>
+    <!-- Inclui Bibliotecas standard de layout  -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Link para o Nosso CSS customizado  onde configuramos Modo Escuro Claro (Estilo visual) -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -43,7 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="auth-logo"><i class="fa-solid fa-user-plus"></i></div>
             <h3 class="auth-title">Registo de Aluno</h3>
             
+            <!-- Mostra ERRO VÍSÍVEL em caso de email já existir -->
             <?php if($erro): ?> <div class="alert alert-danger mb-4"><i class="fa-solid fa-circle-exclamation me-2"></i><?= $erro ?></div> <?php endif; ?>
+            
+            <!-- Mostra MENSAGEM VERDE GIGANTE (SUCESSO) que esconde o formulário porque a conta já foi criada! -->
             <?php if($sucesso): ?> 
                 <div class="alert alert-success text-center p-4">
                     <i class="fa-solid fa-circle-check fa-3x text-success mb-3"></i>
@@ -52,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div> 
             <?php endif; ?>
             
+            <!-- Formulário para Criar Conta! (O bloco só aparece até o Registo acabar com sucesso!) -->
             <?php if(!$sucesso): ?>
             <form method="POST">
                 <div class="mb-3">
@@ -61,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <input type="text" name="nome" class="form-control border-start-0 ps-0" placeholder="O seu nome..." required>
                     </div>
                 </div>
+                <!-- etc. (o método é POST para a informação nunca aparecer na Barra de Endereço URL ao carregar) -->
                 <div class="mb-3">
                     <label class="form-label">Email Institucional</label>
                      <div class="input-group">
@@ -83,6 +102,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php endif; ?>
         </div>
     </div>
+    
+    <!-- Link JS para animar a mudança de cor do ecrã! -->
     <script src="assets/js/theme.js"></script>
 </body>
 </html>

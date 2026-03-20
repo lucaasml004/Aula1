@@ -13,14 +13,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
-    // Verificação (Suporta texto simples conforme o seu SQL inicial)
-    if ($user && ($senha == $user['senha'])) { 
+    // Verificacao de password segura com password_verify
+    if ($user && password_verify($senha, $user['senha'])) { 
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['nome'] = $user['nome'];
         $_SESSION['perfil'] = $user['perfil'];
         header("Location: dashboard.php");
+        exit;
     } else {
-        $erro = "Dados inválidos!";
+        $erro = "Credenciais invalidas!";
     }
 }
 ?>
@@ -42,7 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <form method="POST">
             <div class="mb-3"><label>Email</label><input type="email" name="email" class="form-control" required></div>
             <div class="mb-3"><label>Senha</label><input type="password" name="senha" class="form-control" required></div>
-            <button type="submit" class="btn btn-primary w-100">Entrar</button>
+            <button type="submit" class="btn btn-primary w-100 mb-3">Entrar</button>
+            <div class="text-center">
+                <a href="registar.php" class="text-decoration-none">Criar Conta de Aluno</a>
+            </div>
         </form>
     </div>
 </body>

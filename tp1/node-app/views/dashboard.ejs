@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>IPCA | Portal Académico</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="sidebar d-flex flex-column shadow">
+    <div class="d-flex align-items-center justify-content-center mb-4 pb-3 border-bottom border-secondary">
+        <i class="fa-solid fa-graduation-cap fa-2x text-primary me-2"></i>
+        <h4 class="mb-0 fw-bold text-white">IPCA Portal</h4>
+    </div>
+    
+    <div class="text-center mb-4 pb-3 border-bottom border-secondary">
+        <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(nome) %>&background=random&color=fff&rounded=true" class="rounded-circle mb-3 shadow-md" width="70" height="70">
+        <div class="fw-bold mb-1 text-white"><%= nome %></div>
+        <span class="badge bg-primary text-uppercase"><%= perfil %></span>
+    </div>
+    
+    <ul class="nav flex-column mb-auto">
+        <a class="nav-link <%= page=='home'?'active':'' %>" href="/dashboard?page=home"><i class="fa-solid fa-house mb-1 me-2 text-center"></i> Início</a>
+        
+        <% if(perfil == 'aluno') { %>
+            <a class="nav-link <%= page=='minha_ficha'?'active':'' %>" href="/dashboard?page=minha_ficha"><i class="fa-solid fa-user-graduate mb-1 me-2 text-center"></i> Ficha e Matrícula</a>
+        <% } %>
+
+        <% if(perfil == 'gestor') { %>
+            <a class="nav-link <%= page=='cursos'?'active':'' %>" href="/dashboard?page=cursos"><i class="fa-solid fa-book-open mb-1 me-2 text-center"></i> Cursos</a>
+            <a class="nav-link <%= page=='ucs'?'active':'' %>" href="/dashboard?page=ucs"><i class="fa-solid fa-layer-group mb-1 me-2 text-center"></i> UCs</a>
+            <a class="nav-link <%= page=='gestao_fichas'?'active':'' %>" href="/dashboard?page=gestao_fichas"><i class="fa-solid fa-id-card-clip mb-1 me-2 text-center"></i> Validar Fichas</a>
+        <% } %>
+
+        <% if(perfil == 'funcionario' || perfil == 'gestor') { %>
+            <a class="nav-link <%= page=='validar_pedidos'?'active':'' %>" href="/dashboard?page=validar_pedidos"><i class="fa-solid fa-clipboard-check mb-1 me-2 text-center"></i> Validar Matrículas</a>
+            <a class="nav-link <%= page=='pautas'?'active':'' %>" href="/dashboard?page=pautas"><i class="fa-solid fa-table-list mb-1 me-2 text-center"></i> Pautas & Notas</a>
+        <% } %>
+    </ul>
+
+    <div class="mt-4 pt-3 border-top border-secondary">
+        <button id="btn-theme-toggle" class="btn btn-outline-secondary w-100 d-flex justify-content-center align-items-center gap-2 mb-3">
+            <i class="fa-solid fa-moon"></i> <span>Tema</span>
+        </button>
+        <a class="nav-link text-danger w-100 d-flex justify-content-center align-items-center bg-transparent border border-danger p-2" href="/auth/logout" style="border-radius:10px;">
+            <i class="fa-solid fa-arrow-right-from-bracket m-0 me-2" style="width:auto"></i> Terminar Sessão
+        </a>
+    </div>
+</div>
+
+<main class="main">
+    <header class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom">
+        <h3 class="mb-0 fw-bold">Gestão Académica</h3>
+        <div class="text-muted d-flex align-items-center gap-2 bg-white px-3 py-2 rounded-3 shadow-sm" style="background-color: var(--card-bg) !important;">
+            <i class="fa-regular fa-calendar text-primary"></i>
+            <span class="fw-medium text-main"><%= new Date().toLocaleDateString('pt-PT') %></span>
+        </div>
+    </header>
+
+    <% if(page == 'home') { %>
+        <div class="card p-5 text-center shadow-lg border-0" style="background: linear-gradient(135deg, var(--card-bg) 0%, rgba(59, 130, 246, 0.05) 100%);">
+            <i class="fa-solid fa-school fa-4x text-primary mb-4"></i>
+            <h2 class="mb-3">Bem-vindo ao Novo Sistema IPCA</h2>
+            <p class="text-muted fs-5">Aceda aos menus laterais para gerir as suas funcionalidades.</p>
+        </div>
+
+    <% } else if(page == 'minha_ficha' && perfil == 'aluno') { 
+        const isSubmetida = (ficha && ficha.estado != 'Rascunho');
+    %>
+        <div class="card p-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">A Minha Ficha de Aluno</h4>
+                <% if(ficha) { %>
+                    <span class="badge <%= ficha.estado=='Aprovada'?'bg-success':(ficha.estado=='Submetida'?'bg-warning text-dark':'bg-secondary') %> px-3 py-2 fs-6">
+                        <%= ficha.estado %>
+                    </span>
+                <% } %>
+            </div>
+            
+            <% if(msg == 'sucesso') { %>
+                <div class='alert alert-success'><i class='fa-solid fa-check-circle me-2'></i>Operação realizada com sucesso!</div>
+            <% } %>
+            
+            <form action="/forms/submeter" method="POST" enctype="multipart/form-data">
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Nome Completo</label>
+                        <input type="text" name="nome_aluno" class="form-control" value="<%= (ficha && ficha.nome_aluno) ? ficha.nome_aluno : nome %>" required <%= isSubmetida?'readonly':'' %>>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Curso Pretendido</label>
+                        <select name="curso_id" class="form-select" required <%= isSubmetida?'disabled':'' %>>
+                            <option value="">Selecione o curso...</option>
+                            <% cursos.forEach(c => { %>
+                                <option value="<%= c._id %>" <%= (ficha && ficha.course && ficha.course.equals(c._id)) ? 'selected' : '' %>><%= c.nome %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Turma</label>
+                        <input type="text" name="turma" class="form-control" value="<%= (ficha && ficha.turma) ? ficha.turma : '' %>" required <%= isSubmetida?'readonly':'' %> placeholder="ex: T2">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Data de Nascimento</label>
+                        <input type="date" name="data_nascimento" class="form-control" value="<%= (ficha && ficha.data_nascimento) ? ficha.data_nascimento.toISOString().split('T')[0] : '' %>" required <%= isSubmetida?'readonly':'' %>>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Nº de BI / CC</label>
+                        <input type="text" name="bi" class="form-control" value="<%= (ficha && ficha.bi) ? ficha.bi : '' %>" required <%= isSubmetida?'readonly':'' %> placeholder="XXXXXXXX">
+                    </div>
+                </div>
+                
+                <% if(!isSubmetida) { %>
+                    <div class="d-flex gap-3">
+                        <button type="submit" name="acao" value="Rascunho" class="btn btn-secondary px-4"><i class="fa-solid fa-floppy-disk me-2"></i> Guardar Rascunho</button>
+                        <button type="submit" name="acao" value="Submetida" class="btn btn-primary px-4"><i class="fa-solid fa-paper-plane me-2"></i> Submeter Ficha</button>
+                    </div>
+                <% } %>
+            </form>
+        </div>
+    <% } else if(page == 'gestao_fichas' && perfil == 'gestor') { %>
+        <h4 class="mb-4">Validar Fichas de Alunos</h4>
+        <div class="row">
+        <% if(fichas.length == 0) { %>
+            <div class="col-12"><div class="alert alert-success"><i class="fa-solid fa-check-double me-2"></i>Não existem fichas pendentes.</div></div>
+        <% } else { %>
+            <% fichas.forEach(f => { %>
+                <div class="col-md-6 col-lg-12 mb-4">
+                    <div class="card p-4 shadow-sm h-100">
+                        <div class="row align-items-center h-100">
+                            <div class="col-auto">
+                                <% if(f.foto) { %>
+                                    <img src="/uploads/<%= f.foto %>" class="rounded-circle shadow-sm object-fit-cover border border-3 border-light" width="80" height="80">
+                                <% } else { %>
+                                    <div class="bg-secondary bg-opacity-10 text-center rounded-circle d-flex justify-content-center align-items-center" style="width:80px; height:80px;">
+                                        <i class="fa-solid fa-user fa-2x text-muted"></i>
+                                    </div>
+                                <% } %>
+                            </div>
+                            <div class="col-md-4">
+                                <h5 class="mb-1 fw-bold"><%= f.nome_aluno %></h5>
+                                <div class="text-primary fw-medium mb-1"><i class="fa-solid fa-graduation-cap me-1"></i> <%= f.course ? f.course.nome : 'N/A' %></div>
+                                <small class="text-muted"><i class="fa-regular fa-calendar me-1"></i> Turma: <%= f.turma %> | <i class="fa-solid fa-id-card me-1"></i> BI: <%= f.bi %></small>
+                            </div>
+                            <div class="col-md-6 ms-auto">
+                                <form action="/admin/validar-ficha" method="POST" class="d-flex flex-column gap-2 bg-light p-3 rounded" style="background-color: var(--table-hover) !important;">
+                                    <input type="hidden" name="ficha_id" value="<%= f._id %>">
+                                    <label class="small fw-bold">Decisão do Gestor:</label>
+                                    <input type="text" name="observacoes" class="form-control" placeholder="Adicione observações..." required>
+                                    <div class="d-flex gap-2 mt-2">
+                                        <button name="decisao" value="Aprovada" class="btn btn-success flex-grow-1"><i class="fa-solid fa-check me-2"></i> Aprovar</button>
+                                        <button name="decisao" value="Rejeitada" class="btn btn-danger flex-grow-1"><i class="fa-solid fa-xmark me-2"></i> Rejeitar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        <% } %>
+        </div>
+
+    <% } else if(page == 'cursos' && perfil == 'gestor') { %>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card p-4 h-100 shadow-sm border-top border-4 border-primary">
+                    <h5 class="mb-4">Adicionar Novo Curso</h5>
+                    <form action="/admin/add-curso" method="POST" class="d-flex flex-column gap-3">
+                        <div>
+                            <label class="form-label">Designação do Curso</label>
+                            <input type="text" name="nome_curso" class="form-control" placeholder="Ex: Engenharia Informática" required>
+                        </div>
+                        <button class="btn btn-success mt-2"><i class="fa-solid fa-plus me-2"></i> Guardar Curso</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-8 mb-4">
+                <div class="card p-0 shadow-sm h-100 overflow-hidden">
+                    <div class="card-header bg-transparent mb-0"><h5 class="mb-0 m-2">Cursos Registados</h5></div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <tbody>
+                                <% cursos.forEach(c => { %>
+                                    <tr>
+                                        <td class="ps-4 py-3 fw-medium"><i class="fa-solid fa-book text-muted me-3"></i> <%= c.nome %></td>
+                                        <td class="text-end pe-4 py-3"><a href="/dashboard?page=plano&curso_id=<%= c._id %>" class="btn btn-sm btn-primary px-3 rounded-pill"><i class="fa-solid fa-list-check me-1"></i> Plano de Estudos</a></td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <% } else if(page == 'ucs' && perfil == 'gestor') { %>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card p-4 h-100 shadow-sm border-top border-4 border-info">
+                    <h5 class="mb-4">Adicionar Nova Disciplina (UC)</h5>
+                    <form action="/admin/add-uc" method="POST" class="d-flex flex-column gap-3">
+                        <div>
+                            <label class="form-label">Nome da UC</label>
+                            <input type="text" name="nome_uc" class="form-control" placeholder="Ex: Matemática Aplicada" required>
+                        </div>
+                        <button class="btn btn-info text-white mt-2"><i class="fa-solid fa-plus me-2"></i> Guardar UC</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-8 mb-4">
+                <div class="card p-0 shadow-sm h-100 overflow-hidden">
+                    <div class="card-header bg-transparent mb-0"><h5 class="mb-0 m-2">Unidades Curriculares</h5></div>
+                    <div class="table-responsive" style="max-height: 500px; overflow-y:auto;">
+                        <table class="table table-hover align-middle mb-0">
+                            <tbody>
+                                <% ucs.forEach(uc => { %>
+                                    <tr><td class='ps-4 py-3'><i class='fa-solid fa-layer-group text-muted me-3'></i> <%= uc.nome %></td></tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <% } else if(page == 'plano' && perfil == 'gestor') { %>
+        <div class="d-flex align-items-center mb-4 gap-3">
+            <a href="/dashboard?page=cursos" class="btn btn-outline-secondary rounded-circle" style="width:40px;height:40px;padding:0;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-arrow-left"></i></a>
+            <h4 class="mb-0">Plano de Estudos: <span class="text-primary"><%= curso.nome %></span></h4>
+        </div>
+        
+        <div class="card p-4 mb-4 shadow-sm bg-light" style="background-color: var(--table-hover) !important;">
+            <h5 class="mb-3">Inserir Unidade Curricular no Plano</h5>
+            <form action="/admin/add-plano" method="POST" class="row g-3 align-items-end">
+                <input type="hidden" name="curso_id" value="<%= curso._id %>">
+                <div class="col-md-5">
+                    <label class="form-label">Unidade Curricular</label>
+                    <select name="uc_id" class="form-select" required>
+                        <option value="">Selecione...</option>
+                        <% ucs.forEach(u => { %>
+                            <option value="<%= u._id %>"><%= u.nome %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Ano</label>
+                    <input type="number" name="ano" class="form-control" placeholder="Ex: 1" min="1" max="5" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Semestre</label>
+                    <input type="number" name="semestre" class="form-control" placeholder="1 ou 2" min="1" max="2" required>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-success w-100 py-2"><i class="fa-solid fa-plus me-2"></i> Adicionar ao Plano</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="card p-0 shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead><tr><th class="ps-4">Ano</th><th>Semestre</th><th>Unidade Curricular</th></tr></thead>
+                    <tbody>
+                        <% if(plano.length == 0) { %>
+                            <tr><td colspan='3' class='text-center py-4 text-muted'>Nenhuma UC adicionada ao plano de estudos.</td></tr>
+                        <% } %>
+                        <% plano.forEach(p => { %>
+                            <tr><td class='ps-4 fw-bold'><%= p.ano %>º Ano</td><td><%= p.semestre %>º Semestre</td><td><i class='fa-solid fa-book-open-reader text-muted me-2'></i> <%= p.uc.nome %></td></tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% } else if(page == 'validar_pedidos' && ['funcionario', 'gestor'].includes(perfil)) { %>
+        <h4 class="mb-4">Validar Pedidos de Matrícula</h4>
+        <div class="card p-0 shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th class="ps-4">Aluno / Requerente</th><th>Curso Pretendido</th><th>Ação / Decisão do Funcionário</th></tr></thead>
+                    <tbody>
+                        <% if(pedidos.length == 0) { %>
+                            <tr><td colspan='3' class='text-center py-5 text-muted'><i class="fa-solid fa-inbox fa-3x mb-3 text-light"></i><br>Não há pedidos pendentes.</td></tr>
+                        <% } else { %>
+                            <% pedidos.forEach(row => { %>
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold"><%= row.aluno ? row.aluno.nome : 'N/A' %></div>
+                                        <div class="text-muted small"><%= row.aluno ? row.aluno.email : 'N/A' %></div>
+                                    </td>
+                                    <td class="fw-medium text-primary"><i class="fa-solid fa-graduation-cap me-2"></i> <%= row.course ? row.course.nome : 'N/A' %></td>
+                                    <td>
+                                        <form action="/staff/validar-matricula" method="POST" class="d-flex gap-2">
+                                            <input type="hidden" name="matricula_id" value="<%= row._id %>">
+                                            <input type="text" name="observacoes" class="form-control form-control-sm" placeholder="Opcional..." style="max-width:200px">
+                                            <button name="decisao" value="Aprovado" class="btn btn-sm btn-success px-3"><i class="fa-solid fa-check me-1"></i> Aprovar</button>
+                                            <button name="decisao" value="Rejeitado" class="btn btn-sm btn-danger px-3"><i class="fa-solid fa-xmark me-1"></i> Rejeitar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    <% } else if(page == 'pautas') { %>
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <div class="card p-4 shadow-sm border-top border-4 border-primary">
+                    <h5 class="mb-4"><i class="fa-solid fa-file-invoice me-2 text-primary"></i> Criar Nova Pauta</h5>
+                    <form action="/staff/criar-pauta" method="POST">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-5">
+                                <label class="form-label">Disciplina (UC)</label>
+                                <select name="uc_id" class="form-select" required>
+                                    <option value="">Selecione...</option>
+                                    <% ucs.forEach(u => { %>
+                                        <option value="<%= u._id %>"><%= u.nome %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Ano Letivo</label>
+                                <input type="text" name="ano_letivo" placeholder="ex: 2023/24" class="form-control" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Época</label>
+                                <select name="epoca" class="form-select" required>
+                                    <option>Normal</option>
+                                    <option>Recurso</option>
+                                    <option>Especial</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button name="criar_pauta" class="btn btn-primary d-block w-100 py-2"><i class="fa-solid fa-plus me-1"></i> Gerar Pauta</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-md-12">
+                <div class="card p-0 shadow-sm overflow-hidden">
+                    <div class="card-header bg-transparent mb-0"><h5 class="mb-0 m-2">Arquivo de Pautas</h5></div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead><tr><th class="ps-4">Unidade Curricular</th><th>Ano Letivo</th><th>Época</th><th class="text-end pe-4">Ação</th></tr></thead>
+                            <tbody>
+                                <% if(pautas.length == 0) { %>
+                                    <tr><td colspan='4' class='text-center py-4 text-muted'>Nenhuma pauta criada.</td></tr>
+                                <% } else { %>
+                                    <% pautas.forEach(p => { 
+                                        const e_badge = p.epoca=='Normal' ? 'bg-info text-dark' : (p.epoca=='Recurso' ? 'bg-warning text-dark' : 'bg-danger');
+                                    %>
+                                        <tr>
+                                            <td class='ps-4 fw-bold'><%= p.uc ? p.uc.nome : 'N/A' %></td>
+                                            <td><%= p.ano_letivo %></td>
+                                            <td><span class='badge <%= e_badge %>'><%= p.epoca %></span></td>
+                                            <td class='text-end pe-4'><a href='/dashboard?page=lancar_notas&id=<%= p._id %>' class='btn btn-sm btn-outline-primary rounded-pill px-3'><i class='fa-solid fa-pen-to-square me-1'></i> Ver / Lançar Notas</a></td>
+                                        </tr>
+                                    <% }) %>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <% } else if(page == 'lancar_notas' && typeof info !== 'undefined' && info) { %>
+        <div class="d-flex align-items-center mb-4 gap-3">
+            <a href="/dashboard?page=pautas" class="btn btn-outline-secondary rounded-circle" style="width:40px;height:40px;padding:0;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-arrow-left"></i></a>
+            <h4 class="mb-0">Lançamento de Notas</h4>
+        </div>
+        
+        <div class="card bg-primary bg-opacity-10 border-0 p-4 mb-4 shadow-sm" style="background-color: var(--table-hover) !important;">
+            <div class="row">
+                <div class="col-md-4"><div class="text-muted small mb-1">Unidade Curricular</div><div class="fw-bold fs-5 text-primary"><%= info.uc ? info.uc.nome : 'N/A' %></div></div>
+                <div class="col-md-4"><div class="text-muted small mb-1">Ano Letivo</div><div class="fw-bold fs-5"><%= info.ano_letivo %></div></div>
+                <div class="col-md-4"><div class="text-muted small mb-1">Época Avaliação</div><div class="fw-bold fs-5"><span class="badge bg-secondary"><%= info.epoca %></span></div></div>
+            </div>
+        </div>
+        
+        <div class="card p-0 shadow-sm overflow-hidden">
+            <form action="/staff/lancar-notas" method="POST">
+                <input type="hidden" name="pauta_id" value="<%= info._id %>">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead><tr><th class="ps-4">Aluno</th><th width="30%">Classificação Final (0-20)</th></tr></thead>
+                        <tbody>
+                            <% if(notas.length == 0) { %>
+                                <tr><td colspan='2' class='text-center py-4 text-muted'>Nenhum aluno inscrito nesta pauta ou não listado.</td></tr>
+                            <% } else { %>
+                                <% notas.forEach(n => { 
+                                    const nota = n.nota_final;
+                                    let cor = '';
+                                    if(nota !== null && nota !== undefined) {
+                                        cor = nota < 9.5 ? 'border-danger text-danger bg-danger bg-opacity-10' : 'border-success text-success bg-success bg-opacity-10';
+                                    }
+                                %>
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="fw-bold"><%= n.aluno ? n.aluno.nome : 'N/A' %></div>
+                                            <div class="text-muted small"><%= n.aluno ? n.aluno.email : 'N/A' %></div>
+                                        </td>
+                                        <td>
+                                            <div class="input-group" style="max-width: 150px;">
+                                                <input type="number" step="0.1" max="20" min="0" name="notas[<%= n.aluno ? n.aluno._id : '' %>]" class="form-control form-control-sm text-center fw-bold fs-5 <%= cor %>" value="<%= nota %>">
+                                                <span class="input-group-text bg-transparent text-muted small">val</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+                <% if(notas.length > 0) { %>
+                <div class="card-footer bg-transparent p-4 text-end border-top">
+                    <button type="submit" name="lancar_notas" class="btn btn-primary px-5 py-2 fw-bold text-uppercase shadow-sm"><i class="fa-solid fa-floppy-disk me-2"></i> Gravar Pauta</button>
+                </div>
+                <% } %>
+            </form>
+        </div>
+    <% } %>
+</main>
+
+<script src="/js/theme.js"></script>
+</body>
+</html>

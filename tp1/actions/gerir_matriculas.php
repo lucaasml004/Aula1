@@ -32,8 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
-    // FUNCIONALIDADE DO FUNCIONÁRIO: VALIDAR OU REJEITAR UMA MATRÍCULA
-    if ($_SESSION['perfil'] == 'funcionario' && isset($_POST['decisao'])) {
+    // FUNCIONALIDADE DO FUNCIONÁRIO/GESTOR: VALIDAR OU REJEITAR UMA MATRÍCULA
+    if (in_array($_SESSION['perfil'], ['funcionario', 'gestor']) && isset($_POST['decisao'])) {
         $matricula_id = $_POST['matricula_id']; // Qual é a matrícula em processo?
         $decisao = $_POST['decisao'];           // Decidimos 'Aprovar' ou 'Rejeitar'?
         $obs = trim($_POST['observacoes']);     // Justificação dada pelo funcionário (ex: "Falta de Vagas")

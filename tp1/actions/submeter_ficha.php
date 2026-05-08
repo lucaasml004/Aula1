@@ -65,6 +65,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->execute([$user_id, $curso_id, $nome_aluno, $turma, $data_nascimento, $bi, $nome_foto, $estado_novo]);
     }
 
+    // 5. NOVA LÓGICA: Se a ficha foi submetida, também efetuamos o pedido de matrícula
+    if ($acao == 'Submetida') {
+        $stmt_mat = $pdo->prepare("SELECT id FROM matriculas WHERE aluno_id = ? AND curso_id = ? AND estado != 'Rejeitado'");
+        $stmt_mat->execute([$user_id, $curso_id]);
+        
+        if (!$stmt_mat->fetch()) { 
+            // Se o aluno ainda não tentou entrar, insere o pedido na base de dados com estado "Pendente".
+            $stmt_mat2 = $pdo->prepare("INSERT INTO matriculas (aluno_id, curso_id, estado) VALUES (?, ?, 'Pendente')");
+            $stmt_mat2->execute([$user_id, $curso_id]);
+        }
+    }
+
     // Assinala que o formulário foi enviado ("Sucesso") e redireciona.
     header("Location: ../dashboard.php?page=minha_ficha&msg=sucesso");
     exit;

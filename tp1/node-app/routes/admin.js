@@ -13,8 +13,10 @@ router.use(auth(['gestor']));
 router.post('/add-curso', async (req, res) => {
     try {
         const { nome_curso } = req.body;
+        console.log('Criando curso:', nome_curso);
         const curso = new Course({ nome: nome_curso });
         await curso.save();
+        console.log('✅ Curso criado!');
         res.redirect('/dashboard?page=cursos');
     } catch (err) {
         console.error(err);
@@ -26,8 +28,10 @@ router.post('/add-curso', async (req, res) => {
 router.post('/add-uc', async (req, res) => {
     try {
         const { nome_uc } = req.body;
+        console.log('Criando UC:', nome_uc);
         const uc = new UC({ nome: nome_uc });
         await uc.save();
+        console.log('✅ UC criada!');
         res.redirect('/dashboard?page=ucs');
     } catch (err) {
         console.error(err);

@@ -44,7 +44,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Raciocínio: Utilizamos o Mongoose para gerir a ligação de forma assíncrona.
 // O URI vem do ficheiro .env para não expor a password no código.
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('✅ Sucesso: Ligado ao MongoDB Atlas!'))
+    .then(() => console.log('✅ Sucesso: Ligado ao MongoDB!'))
     .catch(err => console.error('❌ Erro de ligação ao MongoDB:', err));
 
 // Rotas

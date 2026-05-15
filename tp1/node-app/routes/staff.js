@@ -13,12 +13,14 @@ router.use(auth(['funcionario', 'gestor']));
 router.post('/validar-matricula', async (req, res) => {
     try {
         const { matricula_id, decisao, observacoes } = req.body;
+        console.log('Validando matrícula:', matricula_id, 'Decisão:', decisao);
         await Enrollment.findByIdAndUpdate(matricula_id, {
             estado: decisao,
             observacoes,
             responsavel: req.session.userId,
             data_decisao: new Date()
         });
+        console.log('✅ Matrícula validada!');
         res.redirect('/dashboard?page=validar_pedidos');
     } catch (err) {
         console.error(err);
@@ -66,8 +68,11 @@ router.post('/criar-pauta', async (req, res) => {
 router.post('/lancar-notas', async (req, res) => {
     try {
         const { pauta_id, notas } = req.body; // 'notas' é um objeto { alunoId: nota }
+        console.log('Lançando notas para pauta:', pauta_id);
+        console.log('Notas recebidas:', notas);
         
         const updatePromises = Object.entries(notas).map(([alunoId, nota]) => {
+            console.log(`Atualizando nota do aluno ${alunoId}: ${nota}`);
             return Grade.findOneAndUpdate(
                 { pauta: pauta_id, aluno: alunoId },
                 { nota_final: nota === '' ? null : nota },
@@ -76,6 +81,7 @@ router.post('/lancar-notas', async (req, res) => {
         });
 
         await Promise.all(updatePromises);
+        console.log('✅ Todas as notas foram processadas!');
         res.redirect('/dashboard?page=pautas');
     } catch (err) {
         console.error(err);

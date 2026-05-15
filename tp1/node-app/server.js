@@ -1,6 +1,12 @@
-require('dotenv').config();
+// ==========================================
+// CONFIGURAÇÃO DO SERVIDOR NODE.JS (EXPRESS)
+// ==========================================
+// Este ficheiro é o ponto de entrada da aplicação. 
+// Ele configura como o servidor se comporta e como se liga à base de dados.
+
+require('dotenv').config(); // Carrega as variáveis secretas do ficheiro .env
 const express = require('express');
-const mongoose = require('mongoose');
+const mongoose = require('mongoose'); // Biblioteca para falar com o MongoDB
 const cors = require('cors');
 const path = require('path');
 
@@ -34,10 +40,12 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Conexão ao MongoDB
+// --- LIGAÇÃO À BASE DE DADOS (MONGODB ATLAS) ---
+// Raciocínio: Utilizamos o Mongoose para gerir a ligação de forma assíncrona.
+// O URI vem do ficheiro .env para não expor a password no código.
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('Conectado ao MongoDB com sucesso!'))
-    .catch(err => console.error('Erro ao conectar ao MongoDB:', err));
+    .then(() => console.log('✅ Sucesso: Ligado ao MongoDB Atlas!'))
+    .catch(err => console.error('❌ Erro de ligação ao MongoDB:', err));
 
 // Rotas
 app.use('/auth', authRoutes);

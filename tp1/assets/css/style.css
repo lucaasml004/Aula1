@@ -1,14 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* 
+   SISTEMA DE DESIGN DINÂMICO
+   Este ficheiro utiliza Variáveis CSS (Custom Properties) para permitir a troca instantânea
+   de temas (Dark/Light) sem recarregar a página.
+*/
 
 :root {
-    --bg-color: #f1f5f9;
-    --card-bg: #ffffff;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
-    --primary-color: #3b82f6;
-    --primary-hover: #2563eb;
-    --sidebar-bg: #1e293b;
+    /* Variáveis Globais (Modo Claro por Defeito) */
+    --bg-color: #f1f5f9;       /* Fundo suave para reduzir o cansaço visual */
+    --card-bg: #ffffff;        /* Branco puro para os cartões de conteúdo */
+    --text-main: #0f172a;      /* Azul marinho quase preto para máxima legibilidade */
+    --text-muted: #64748b;     /* Cinzento para informações secundárias */
+    --border-color: #e2e8f0;   /* Cor de borda discreta */
+    --primary-color: #3b82f6;  /* Azul IPCA Moderno */
+    --primary-hover: #2563eb; 
+    --sidebar-bg: #1e293b;     /* Sidebar escura para contraste profissional */
     --sidebar-text: #cbd5e1;
     --sidebar-hover: #334155;
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -22,12 +27,15 @@
 }
 
 [data-theme="dark"] {
-    --bg-color: #0f172a;
-    --card-bg: #1e293b;
-    --text-main: #f8fafc;
+    /* Sobrescrita das Variáveis para o MODO ESCURO (Dark Mode) 
+       Raciocínio: Invertemos os tons claros por escuros mantendo o contraste.
+    */
+    --bg-color: #0f172a;       /* Fundo muito escuro */
+    --card-bg: #1e293b;        /* Cartões ligeiramente mais claros que o fundo */
+    --text-main: #f8fafc;      /* Texto quase branco */
     --text-muted: #94a3b8;
     --border-color: #334155;
-    --primary-color: #6366f1;
+    --primary-color: #6366f1;  /* Tom de azul mais vibrante para o modo escuro */
     --primary-hover: #818cf8;
     --sidebar-bg: #0b1120;
     --sidebar-text: #94a3b8;
